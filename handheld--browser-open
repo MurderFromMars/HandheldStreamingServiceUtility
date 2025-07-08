@@ -1,6 +1,5 @@
 #!/bin/bash
 # SPDX-License-Identifier: GPL-2.0-or-later
-# Copyright (C) 2024 SteamFork (https://github.com/SteamFork)
 
 BROWSER=${1}
 URL=${URL:-${2}}

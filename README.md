@@ -1,4 +1,4 @@
-## Handheld Streaming Servicce Utility 
+## Handheld Streaming Service Utility 
 This script will provide a UI to select any URLs found in the `data/links.index` source file, and will create desktop icons and add them to Steam.  It is compatible with any dsitro  is best suited for Gamescope-Session but can be used with big picture mdoe as well. it essentially automatically creates web apps for streaming services that are added as non steam games in your library 
 
 ## Dependencies 

@@ -24,7 +24,7 @@ echo "SETUP: Fetching source data..."
 curl -Lo "${SOURCE_FILE}" "https://github.com/MurderFromMars/HandheldStreamingServiceUtility/raw/main/data/links.index"
 
 echo "SETUP: Fetching browser script..."
-curl -Lo "${SCRIPT_COMMAND}" "https://github.com/SteamFork/SetupStreamingServices/raw/main/bin/steamfork-browser-open"
+curl -Lo "${SCRIPT_COMMAND}" "https://github.com/MurderFromMars/HandheldStreamingServiceUtility/raw/main/bin/handheld--browser-open"
 chmod 0755 "${SCRIPT_COMMAND}"
 
 BROWSER_CHOICE=$(zenity --list \

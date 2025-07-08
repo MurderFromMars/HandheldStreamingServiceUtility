@@ -21,7 +21,7 @@ if [ -e "${SOURCE_FILE}" ]; then
 fi
 
 echo "SETUP: Fetching source data..."
-curl -Lo "${SOURCE_FILE}" ""https://github.com/MurderFromMars/HandheldStreamingServiceUtility/raw/main/data/links.index
+curl -Lo "${SOURCE_FILE}" "https://github.com/MurderFromMars/HandheldStreamingServiceUtility/raw/main/data/links.index"
 
 echo "SETUP: Fetching browser script..."
 curl -Lo "${SCRIPT_COMMAND}" "https://github.com/SteamFork/SetupStreamingServices/raw/main/bin/steamfork-browser-open"

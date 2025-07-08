@@ -6,7 +6,7 @@ WORK_DIR="$(dirname $(realpath "${0}"))"
 SOURCE_FILE="${WORK_DIR}/links.index"
 APPS_PATH="${HOME}/Applications"
 SCRIPT_PATH="${HOME}/bin"
-SCRIPT_COMMAND="${SCRIPT_PATH}/steamfork-browser-open"
+SCRIPT_COMMAND="${SCRIPT_PATH}/handheld-browser-open"
 
 for DIR in "${APPS_PATH}" "${SCRIPT_PATH}"; do
     if [ ! -d "${DIR}" ]; then

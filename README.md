@@ -1,5 +1,5 @@
 ## Handheld Streaming Service Utility 
-This script will provide a UI to select any URLs found in the `data/links.index` source file, and will create desktop icons and add them to Steam.  It is compatible with any dsitro, provided you can fufill the add to steam dependency. for greatest ease of use a handheld distro such as Bazzite or SteamOS,  CachyOS and Nobara should also work but require installing the flatpak package.  
+This script will provide a UI to select any URLs found in the `data/links.index` source file,  and add them to Steam.  It is compatible with any dsitro, provided you can fufill the add to steam dependency. for greatest ease of use a handheld distro such as Bazzite or SteamOS,  CachyOS and Nobara should also work but require installing the flatpak package.  
 is best suited for Gamescope-Session but can be used with big picture mdoe as well. it essentially automatically creates web apps for streaming services that are added as non steam games in your library 
 
 ## Dependencies 

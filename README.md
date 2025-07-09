@@ -122,4 +122,5 @@ Return to your application screen, and use touch input.
 
 ## Credit For Original.Concept and Code.
 
-This project was originally called setupstremingservices and was created by the lead dev of SteamFork. a SteamOS clone distro that is now defunct. as the code was archived I was unable to actually fork the project, so instead copied the source code and made some alterations. I plan to continue maintaining this as I personally use it on my handheld devices. 
+This project was originally called SetupStreamingServices and was created by the lead dev of SteamFork. a SteamOS clone distro that is now defunct and no longer being maintained.
+as the code was archived I was unable to actually fork the project, so instead copied the source code and made some alterations. I plan to continue maintaining this as I personally use it on my handheld devices. 

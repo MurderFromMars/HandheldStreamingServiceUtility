@@ -10,9 +10,9 @@ Flatpak, steamos-add-to-steam (present on all handheld oriiented distros, also o
   </tr>
 </table>
 
-### Browser Selection
+## Browser Selection
+
 When running the script, you will be prompted to select the browser you would like to use for all URLs. You can choose between:
-## Browsers
 
 1. **Google Chrome** (Best Compatibility)
 2. **Brave Browser**: (Best Privacy)

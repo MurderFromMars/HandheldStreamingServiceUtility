@@ -12,11 +12,12 @@ Flatpak, steamos-add-to-steam (present on all handheld oriiented distros, also o
 
 ### Browser Selection
 When running the script, you will be prompted to select the browser you would like to use for all URLs. You can choose between:
+## Browsers
 
-1. **Default Browsers**: Google Chrome (Best Compatibility)
+1. **Google Chrome** (Best Compatibility)
 2. **Brave Browser**: (Best Privacy)
 
-### Supported URLs
+## Supported URLs
 The list below is based on the index found in the source tree and may not contain the full list.  Review [data/links.index](/data/links.index) for the most up-to-date data.
 
 * [ABC IView](https://iview.abc.net.au)
@@ -92,7 +93,7 @@ The list below is based on the index found in the source tree and may not contai
 * [YouTube](https://www.youtube.com/)
 * [WebRcade](https://play.webrcade.com/)
 
-### Installation Command
+## Installation Command
 
 ```
 curl -L https://github.com/MurderFromMars/HandheldStreamingServiceUtility/raw/main/install.sh | bash
@@ -118,5 +119,7 @@ Return to your application screen, and use touch input.
 1. Delete the launchers from Steam.
 2. Remove the related .desktop files from ~/Applications.
 3. Delete steamfork-browser-open from ~/bin.
+
 ## Credit For Original.Concept and Code.
+
 This project was originally called setupstremingservices and was created by the lead dev of SteamFork. a SteamOS clone distro that is now defunct. as the code was archived I was unable to actually fork the project, so instead copied the source code and made some alterations. I plan to continue maintaining this as I personally use it on my handheld devices. 

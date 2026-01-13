@@ -1,6 +1,5 @@
 #!/bin/bash
-# Handheld Streaming Service Utility - Chrome WebApp Installer
-# Creates Flatpak Google Chrome fullscreen kiosk web apps from links.index
+# Handheld Streaming Service Utility 
 
 set -e
 

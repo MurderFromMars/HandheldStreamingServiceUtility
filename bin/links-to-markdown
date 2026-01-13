@@ -1,1 +1,11 @@
-#!/bin/sh # Generate a Markdown-style list from links.index # Format: * [Name](URL) sed \ -e 's/^/* [/' \ -e 's/|com.*$//' \ -e 's/|/](/' \ -e 's/$/)/' \ data/links.index 
+#!/bin/sh
+
+# Generate a Markdown-style list from links.index
+# Format: * [Name](URL)
+
+sed \
+  -e 's/^/* [/' \
+  -e 's/|com.*$//' \
+  -e 's/|/](/' \
+  -e 's/$/)/' \
+  data/links.index

@@ -1,5 +1,6 @@
 #!/bin/bash
-#  Handeld Streaming Service utility 
+# SPDX-License-Identifier: GPL-2.0-or-later
+# Handheld Streaming Service Utility Installer
 
 set -e
 
@@ -10,16 +11,16 @@ OUTPUT_DIR="${WORK_DIR}/output"
 
 APPS_PATH="${HOME}/Applications"
 SCRIPT_PATH="${HOME}/bin"
-SCRIPT_COMMAND="${SCRIPT_PATH}/steamfork-browser-open"
+SCRIPT_COMMAND="${SCRIPT_PATH}/handheld-browser-open"
 SOURCE_FILE="${WORK_DIR}/links.index"
 
 mkdir -p "${DATA_DIR}" "${BIN_DIR}" "${OUTPUT_DIR}"
 
 ###############################################
-# SCRIPT 1 — Convert links.index to Markdown
+# Convert links.index to Markdown
 ###############################################
 generate_markdown_links() {
-    echo "STEP 1: Generating Markdown link list..."
+    echo "STEP: Generating Markdown link list..."
 
     if [ ! -f "${SOURCE_FILE}" ]; then
         echo "ERROR: links.index not found at ${SOURCE_FILE}"
@@ -36,7 +37,7 @@ generate_markdown_links() {
 }
 
 ###############################################
-# SCRIPT 2 — Browser launcher (embedded)
+# Browser launcher (embedded)
 ###############################################
 browser_open() {
     local BROWSER="$1"
@@ -73,10 +74,10 @@ browser_open() {
 }
 
 ###############################################
-# SCRIPT 3 — Main Installer
+# Main Installer
 ###############################################
 run_installer() {
-    echo "STEP 2: Preparing directories..."
+    echo "STEP: Preparing directories..."
 
     for DIR in "${APPS_PATH}" "${SCRIPT_PATH}"; do
         if [ ! -d "${DIR}" ]; then
@@ -90,18 +91,18 @@ run_installer() {
         echo "SETUP: Removed existing source file ${SOURCE_FILE}."
     fi
 
-    echo "STEP 3: Fetching source data..."
+    echo "STEP: Fetching source data..."
     curl -Lo "${SOURCE_FILE}" \
-        "https://github.com/SteamFork/SetupStreamingServices/raw/main/data/links.index"
+        "https://raw.githubusercontent.com/MurderFromMars/HandheldStreamingServiceUtility/main/data/links.index"
 
-    echo "STEP 4: Installing browser launcher..."
+    echo "STEP: Fetching browser launcher..."
     curl -Lo "${SCRIPT_COMMAND}" \
-        "https://github.com/SteamFork/SetupStreamingServices/raw/main/bin/steamfork-browser-open"
+        "https://raw.githubusercontent.com/MurderFromMars/HandheldStreamingServiceUtility/main/bin/handheld-browser-open"
     chmod 0755 "${SCRIPT_COMMAND}"
 
     BROWSER_CHOICE=$(zenity --list \
         --title="Browser Selection" \
-        --text="Please select the browser you would like to use for all URLs:" \
+        --text="Select the browser you want to use for all URLs:" \
         --radiolist \
         --column="Select" --column="Browser" \
         TRUE "Google Chrome and Microsoft Edge (Best Compatibility)" \
@@ -126,11 +127,11 @@ run_installer() {
         allURLs+=("FALSE" "${SITE}")
     done < "${SOURCE_FILE}"
 
-    URLS=$(zenity --title "Internet Media Links" \
+    URLS=$(zenity --title "Streaming Services" \
         --list \
         --height=600 \
         --width=350 \
-        --text="Please choose the links that you would like to add to Game Mode." \
+        --text="Choose the services you want to add to Game Mode." \
         --column="Select" \
         --column="URL" \
         --checklist \
@@ -143,7 +144,7 @@ run_installer() {
 
     IFS='|' read -r -a arrSelected <<< "${URLS}"
 
-    echo "STEP 5: Installing selected entries..."
+    echo "STEP: Installing selected entries..."
 
     for ITEM in "${arrSelected[@]}"; do
         NEW_ITEM=$(grep "^${ITEM}|" "${SOURCE_FILE}")
@@ -186,13 +187,13 @@ EOF
         fi
     done
 
-    echo "STEP 6: Generating Markdown link list..."
+    echo "STEP: Generating Markdown link list..."
     generate_markdown_links
 
     echo "INSTALLATION COMPLETE."
 }
 
 ###############################################
-# MAIN EXECUTION (Linear)
+# MAIN EXECUTION
 ###############################################
 run_installer

@@ -1,69 +1,75 @@
-#!/bin/bash
-# SPDX-License-Identifier: GPL-2.0-or-later
+#!/usr/bin/env bash
+# Kiosk-mode browser launcher for gaming handhelds
 
-###############################################################################
-# Input handling
-###############################################################################
+set -euo pipefail
 
-REQUESTED_BROWSER="$1"
-TARGET_URL="$2"
+readonly FLATPAK_BIN="/usr/bin/flatpak"
+readonly DISPLAY_WIDTH="1024"
+readonly DISPLAY_HEIGHT="640"
+readonly SCALE_FACTOR="1.25"
 
-# Default browser if none provided
-if [ -z "$REQUESTED_BROWSER" ]; then
-    REQUESTED_BROWSER="com.google.Chrome"
-fi
+# Browser display name mapping
+declare -A BROWSER_NAMES=(
+    ["com.google.Chrome"]="Google Chrome"
+    ["com.microsoft.Edge"]="Microsoft Edge"
+    ["com.brave.Browser"]="Brave Browser"
+)
 
-# URL must be provided by caller
-if [ -z "$TARGET_URL" ]; then
-    zenity --error --text="No URL was provided to the browser launcher."
-    exit 1
-fi
+# Validate flatpak installation
+check_browser_installed() {
+    local flatpak_id="$1"
+    flatpak info "${flatpak_id}" &>/dev/null
+}
 
-###############################################################################
-# Browser availability check
-###############################################################################
-
-if ! flatpak info "$REQUESTED_BROWSER" >/dev/null 2>&1; then
-
-    # Convert Flatpak ID → human name for the popup
-    case "$REQUESTED_BROWSER" in
-        com.google.Chrome)
-            FRIENDLY_NAME="Google Chrome"
-            ;;
-        com.microsoft.Edge)
-            FRIENDLY_NAME="Microsoft Edge"
-            ;;
-        *)
-            FRIENDLY_NAME="$REQUESTED_BROWSER"
-            ;;
-    esac
-
+# Show installation prompt
+prompt_install() {
+    local browser_name="$1"
     zenity --info \
-        --text="The required browser (${FRIENDLY_NAME}) is not installed.\n\nPlease switch to Desktop Mode and install it from Discover."
+        --title="Browser Not Found" \
+        --text="Please install ${browser_name} from Discover (Desktop Mode) before launching this application."
+}
 
-    exit 1
-fi
+# Launch browser in kiosk configuration
+launch_kiosk() {
+    local flatpak_id="$1"
+    local url="$2"
+    
+    # Clear Steam overlay library
+    unset LD_PRELOAD
+    
+    exec "${FLATPAK_BIN}" run \
+        --arch=x86_64 \
+        --branch=stable \
+        --file-forwarding \
+        "${flatpak_id}" \
+        @@u @@ \
+        --window-size="${DISPLAY_WIDTH},${DISPLAY_HEIGHT}" \
+        --force-device-scale-factor="${SCALE_FACTOR}" \
+        --device-scale-factor="${SCALE_FACTOR}" \
+        --kiosk \
+        "${url}"
+}
 
-###############################################################################
-# Environment cleanup
-###############################################################################
+# Main execution
+main() {
+    local browser_id="${1:-com.google.Chrome}"
+    local target_url="${URL:-${2:-}}"
+    
+    # Validate inputs
+    if [[ -z "${target_url}" ]]; then
+        echo "Error: No URL specified" >&2
+        exit 1
+    fi
+    
+    # Check if browser exists
+    if ! check_browser_installed "${browser_id}"; then
+        local display_name="${BROWSER_NAMES[${browser_id}]:-Unknown Browser}"
+        prompt_install "${display_name}"
+        exit 1
+    fi
+    
+    # Execute in kiosk mode
+    launch_kiosk "${browser_id}" "${target_url}"
+}
 
-# Steam Deck sometimes injects LD_PRELOAD — remove it for Flatpak apps
-unset LD_PRELOAD
-
-###############################################################################
-# Launch browser in kiosk mode
-###############################################################################
-
-/usr/bin/flatpak run \
-    --arch=x86_64 \
-    --branch=stable \
-    --file-forwarding \
-    "$REQUESTED_BROWSER" \
-    @@u \
-    @@ \
-    --window-size="1024,640" \
-    --force-device-scale-factor="1.25" \
-    --device-scale-factor="1.25" \
-    --kiosk \
-    "$TARGET_URL"
+main "$@"

@@ -120,7 +120,6 @@ To remove the utility:
 
 1. Delete the generated shortcuts from Steam.  
 2. Remove the corresponding `.desktop` files from `~/Applications`.  
-3. Delete the `steamfork browser open` script from `~/bin`.
 
 ## Acknowledgements
 

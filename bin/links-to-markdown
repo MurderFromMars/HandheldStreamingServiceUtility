@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 # Convert pipe-delimited service index to markdown list
-# Restructured using pure bash string manipulation
 
 readonly INDEX_PATH="data/links.index"
 

@@ -1,10 +1,1 @@
-#!/bin/sh
-
-# Reformats entries from data/links.index into Markdown-style link bullets.
-# Original format:  Name|URL|Browser
-# Output format:    * [Name](URL)
-
-while IFS='|' read -r NAME URL _BROWSER
-do
-    printf '* [%s](%s)\n' "$NAME" "$URL"
-done < data/links.index
+#!/bin/sh # Generate a Markdown-style list from links.index # Format: * [Name](URL) sed \ -e 's/^/* [/' \ -e 's/|com.*$//' \ -e 's/|/](/' \ -e 's/$/)/' \ data/links.index 

@@ -2,7 +2,7 @@
 
 The Handheld Streaming Service Utility provides a simple interface for turning streaming platforms into Steam launchable web apps. It reads from the `data/links.index` file, presents the available services, and automatically registers your selections as non Steam shortcuts inside Steam.
 
-Any Linux distribution that supports the “add to Steam” mechanism can run the tool. Handheld focused systems such as SteamOS, Bazzite, CachyOS, and Nobara tend to offer the smoothest experience (some may require installing the Flatpak package first). Although the workflow is optimized for Gamescope Session, it works just as well in Big Picture Mode.
+
 
 ## Requirements
 
@@ -10,7 +10,7 @@ Before running the utility, make sure the following components are available:
 
 - Flatpak
 - steamos add to steam  
-  (included by default on most handheld oriented distros; available in the AUR; may require manual installation on others)
+  (optional, included in most handheld oriented distros; available in the AUR; may require manual installation on others)
 
 ## Supported Services
 

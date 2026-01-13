@@ -14,7 +14,6 @@ readonly INDEX_FILE="${INSTALL_ROOT}/links.index"
 
 # Browser constants
 readonly CHROME_ID="com.google.Chrome"
-readonly EDGE_ID="com.microsoft.Edge"
 readonly BRAVE_ID="com.brave.Browser"
 
 # Ensure required directories exist

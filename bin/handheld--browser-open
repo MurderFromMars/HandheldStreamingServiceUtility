@@ -1,20 +1,32 @@
 #!/bin/bash
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# Accept browser ID as first argument; URL as second or from environment
-CHOSEN_BROWSER="$1"
-TARGET_URL="${URL:-$2}"
+###############################################################################
+# Input handling
+###############################################################################
 
-# Default to Chrome Flatpak if no browser was provided
-if [ -z "$CHOSEN_BROWSER" ]; then
-    CHOSEN_BROWSER="com.google.Chrome"
+REQUESTED_BROWSER="$1"
+TARGET_URL="$2"
+
+# Default browser if none provided
+if [ -z "$REQUESTED_BROWSER" ]; then
+    REQUESTED_BROWSER="com.google.Chrome"
 fi
 
-# Verify the browser Flatpak exists
-if ! flatpak info "$CHOSEN_BROWSER" >/dev/null 2>&1; then
+# URL must be provided by caller
+if [ -z "$TARGET_URL" ]; then
+    zenity --error --text="No URL was provided to the browser launcher."
+    exit 1
+fi
 
-    # Convert Flatpak IDs into readable names for the dialog
-    case "$CHOSEN_BROWSER" in
+###############################################################################
+# Browser availability check
+###############################################################################
+
+if ! flatpak info "$REQUESTED_BROWSER" >/dev/null 2>&1; then
+
+    # Convert Flatpak ID → human name for the popup
+    case "$REQUESTED_BROWSER" in
         com.google.Chrome)
             FRIENDLY_NAME="Google Chrome"
             ;;
@@ -22,26 +34,34 @@ if ! flatpak info "$CHOSEN_BROWSER" >/dev/null 2>&1; then
             FRIENDLY_NAME="Microsoft Edge"
             ;;
         *)
-            FRIENDLY_NAME="$CHOSEN_BROWSER"
+            FRIENDLY_NAME="$REQUESTED_BROWSER"
             ;;
     esac
 
     zenity --info \
-        --text="The selected browser (${FRIENDLY_NAME}) is not installed. Switch to Desktop Mode and install it through your software center."
+        --text="The required browser (${FRIENDLY_NAME}) is not installed.\n\nPlease switch to Desktop Mode and install it from Discover."
 
     exit 1
 fi
 
-# Prevent Steam's LD_PRELOAD from interfering with Flatpak
+###############################################################################
+# Environment cleanup
+###############################################################################
+
+# Steam Deck sometimes injects LD_PRELOAD — remove it for Flatpak apps
 unset LD_PRELOAD
 
-# Launch the browser in kiosk-style mode through Flatpak
-flatpak run \
+###############################################################################
+# Launch browser in kiosk mode
+###############################################################################
+
+/usr/bin/flatpak run \
     --arch=x86_64 \
     --branch=stable \
     --file-forwarding \
-    "$CHOSEN_BROWSER" \
-    @@u @@ \
+    "$REQUESTED_BROWSER" \
+    @@u \
+    @@ \
     --window-size="1024,640" \
     --force-device-scale-factor="1.25" \
     --device-scale-factor="1.25" \

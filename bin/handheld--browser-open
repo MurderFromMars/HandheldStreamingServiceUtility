@@ -1,40 +1,49 @@
 #!/bin/bash
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-BROWSER=${1}
-URL=${URL:-${2}}
+# Accept browser ID as first argument; URL as second or from environment
+CHOSEN_BROWSER="$1"
+TARGET_URL="${URL:-$2}"
 
-if [ -z "${BROWSER}" ]
-then
-  BROWSER="com.google.Chrome"
+# Default to Chrome Flatpak if no browser was provided
+if [ -z "$CHOSEN_BROWSER" ]; then
+    CHOSEN_BROWSER="com.google.Chrome"
 fi
 
-BROWSER_INSTALLED=$(flatpak info ${BROWSER} >/dev/null 2>&1)
-if (( $? > 0 ))
-then
-	case ${BROWSER} in
-		com.google.Chrome)
-			BROWSER="Google Chrome"
-			;;
-		com.microsoft.Edge)
-			BROWSER="Microsoft Edge"
-			;;
-	esac
-	zenity --info --text="Please switch to desktop mode and install Microsoft Edge from the discovery software center."
-	exit 1
+# Verify the browser Flatpak exists
+if ! flatpak info "$CHOSEN_BROWSER" >/dev/null 2>&1; then
+
+    # Convert Flatpak IDs into readable names for the dialog
+    case "$CHOSEN_BROWSER" in
+        com.google.Chrome)
+            FRIENDLY_NAME="Google Chrome"
+            ;;
+        com.microsoft.Edge)
+            FRIENDLY_NAME="Microsoft Edge"
+            ;;
+        *)
+            FRIENDLY_NAME="$CHOSEN_BROWSER"
+            ;;
+    esac
+
+    zenity --info \
+        --text="The selected browser (${FRIENDLY_NAME}) is not installed. Switch to Desktop Mode and install it through your software center."
+
+    exit 1
 fi
 
+# Prevent Steam's LD_PRELOAD from interfering with Flatpak
 unset LD_PRELOAD
 
-/usr/bin/flatpak run \
-	--arch=x86_64 \
-	--branch=stable \
-	--file-forwarding \
-	"${BROWSER}" \
-	@@u \
-	@@ \
-	--window-size="1024,640" \
-	--force-device-scale-factor="1.25" \
-	--device-scale-factor="1.25" \
-	--kiosk \
-	"${URL}"
+# Launch the browser in kiosk-style mode through Flatpak
+flatpak run \
+    --arch=x86_64 \
+    --branch=stable \
+    --file-forwarding \
+    "$CHOSEN_BROWSER" \
+    @@u @@ \
+    --window-size="1024,640" \
+    --force-device-scale-factor="1.25" \
+    --device-scale-factor="1.25" \
+    --kiosk \
+    "$TARGET_URL"

@@ -1,208 +1,196 @@
-#!/bin/bash
-# SPDX-License-Identifier: GPL-2.0-or-later
+#!/usr/bin/env bash
 
-# Handheld Streaming Service Utility
-# Reworked launcher registration script for Steam Deck–like environments.
+set -euo pipefail
 
-###############################################################################
-# Configuration
-###############################################################################
+readonly INSTALL_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+readonly INDEX_URL="https://github.com/SteamFork/SetupStreamingServices/raw/main/data/links.index"
+readonly LAUNCHER_URL="https://github.com/SteamFork/SetupStreamingServices/raw/main/bin/steamfork-browser-open"
 
-BASE_DIR="$(cd "$(dirname "$(realpath "$0")")" && pwd)"
-INDEX_FILE="${BASE_DIR}/links.index"
+# Directory structure
+readonly USER_APPS="${HOME}/Applications"
+readonly USER_SCRIPTS="${HOME}/bin"
+readonly LAUNCHER_SCRIPT="${USER_SCRIPTS}/steamfork-browser-open"
+readonly INDEX_FILE="${INSTALL_ROOT}/links.index"
 
-LAUNCHERS_DIR="${HOME}/Applications"
-HELPER_DIR="${HOME}/bin"
-HELPER_SCRIPT="${HELPER_DIR}/steamfork-browser-open"
+# Browser constants
+readonly CHROME_ID="com.google.Chrome"
+readonly EDGE_ID="com.microsoft.Edge"
+readonly BRAVE_ID="com.brave.Browser"
 
-INDEX_URL="https://github.com/SteamFork/SetupStreamingServices/raw/main/data/links.index"
-HELPER_URL="https://github.com/SteamFork/SetupStreamingServices/raw/main/bin/steamfork-browser-open"
-
-###############################################################################
-# Helpers
-###############################################################################
-
-ensure_directory() {
-    local path="$1"
-    if [ ! -d "$path" ]; then
-        mkdir -p "$path"
-        echo "SETUP: Created directory $path."
-    fi
+# Ensure required directories exist
+setup_directories() {
+    local dir
+    for dir in "${USER_APPS}" "${USER_SCRIPTS}"; do
+        [[ -d "${dir}" ]] && continue
+        mkdir -p "${dir}"
+        echo "Created: ${dir}"
+    done
 }
 
-fetch_file() {
-    local url="$1"
-    local target="$2"
-
-    echo "SETUP: Downloading $url -> $target"
-    curl -fsSL -o "$target" "$url"
+# Download required files
+fetch_resources() {
+    echo "Downloading service index..."
+    [[ -f "${INDEX_FILE}" ]] && rm -f "${INDEX_FILE}"
+    curl -fsSL -o "${INDEX_FILE}" "${INDEX_URL}"
+    
+    echo "Downloading launcher executable..."
+    curl -fsSL -o "${LAUNCHER_SCRIPT}" "${LAUNCHER_URL}"
+    chmod +x "${LAUNCHER_SCRIPT}"
 }
 
-pick_browser() {
+# Prompt user for browser preference
+select_browser() {
     local choice
-
-    choice=$(
-        zenity --list \
-            --title="Browser Selection" \
-            --text="Please select the browser you would like to use for all URLs:" \
-            --radiolist \
-            --column="Select" --column="Browser" \
-            TRUE  "Google Chrome and Microsoft Edge (Best Compatibility)" \
-            FALSE "Brave Browser (Best Privacy)"
-    )
-
-    if [ $? -ne 0 ]; then
-        echo "USER: Operation cancelled by the user."
+    choice=$(zenity --list \
+        --title="Choose Your Browser" \
+        --text="Select which browser to use for web applications:" \
+        --radiolist \
+        --column="" --column="Browser Option" \
+        TRUE "Chrome/Edge (Recommended for compatibility)" \
+        FALSE "Brave (Privacy-focused alternative)") || {
+        echo "Browser selection cancelled"
         exit 0
+    }
+    
+    if [[ "${choice}" == *"Brave"* ]]; then
+        echo "${BRAVE_ID}"
+    else
+        echo ""
     fi
-
-    case "$choice" in
-        "Brave Browser"*"Best Privacy"*)
-            echo "USER: Brave Browser selected. Overriding all browser selections."
-            echo "com.brave.Browser"
-            ;;
-        *)
-            echo "USER: Default browsers (Google Chrome and Microsoft Edge) selected."
-            echo ""
-            ;;
-    esac
 }
 
-build_service_checklist() {
-    # Reads INDEX_FILE and emits a flat list suitable for zenity --checklist
-    local -a entries=()
-    while IFS= read -r line; do
-        # Skip empty lines
-        [ -z "$line" ] && continue
-
-        local name="${line%%|*}"
-        echo "URLS: Found site $name."
-        entries+=("FALSE" "$name")
-    done < "$INDEX_FILE"
-
-    echo "${entries[@]}"
+# Build service selection array from index
+build_service_list() {
+    local -n result_array=$1
+    local line service_name
+    
+    while IFS='|' read -r service_name _; do
+        [[ -z "${service_name}" ]] && continue
+        result_array+=("FALSE" "${service_name}")
+        echo "Found: ${service_name}"
+    done < "${INDEX_FILE}"
 }
 
-prompt_for_services() {
-    local -a checklist_items
-    IFS=' ' read -r -a checklist_items <<< "$(build_service_checklist)"
-
-    echo "URLS: All available sites: [${checklist_items[*]}]"
-
-    local selection
-    selection=$(
-        zenity --title "Internet Media Links" \
-            --list \
-            --height=600 \
-            --width=350 \
-            --text="Please choose the links that you would like to add to Game Mode." \
-            --column="Select" \
-            --column="URL" \
-            --checklist \
-            "${checklist_items[@]}"
-    )
-
-    if [ $? -ne 0 ]; then
-        echo "USER: Operation cancelled by the user."
+# Present service selection dialog
+choose_services() {
+    local -a service_options=()
+    build_service_list service_options
+    
+    zenity --list \
+        --title="Web Application Installer" \
+        --text="Select applications to add to Gaming Mode:" \
+        --checklist \
+        --height=600 \
+        --width=350 \
+        --column="Add" \
+        --column="Application" \
+        "${service_options[@]}" || {
+        echo "Service selection cancelled"
         exit 0
+    }
+}
+
+# Parse index entry for a given service name
+parse_service_entry() {
+    local service_name="$1"
+    local index_line
+    
+    index_line=$(grep -F "${service_name}|" "${INDEX_FILE}" | head -n1)
+    echo "${index_line}"
+}
+
+# Install flatpak if not present
+ensure_flatpak() {
+    local flatpak_id="$1"
+    
+    if flatpak info "${flatpak_id}" &>/dev/null; then
+        return 0
     fi
-
-    echo "$selection"
+    
+    echo "Installing: ${flatpak_id}"
+    sudo flatpak --assumeyes install "${flatpak_id}"
+    flatpak --user override --filesystem=/run/udev:ro "${flatpak_id}"
 }
 
-parse_selection_list() {
-    # Takes the raw zenity output and splits it into an array via |
-    local raw="$1"
-    local -n out_ref="$2"
-
-    IFS='|' read -r -a out_ref <<< "$raw"
-}
-
-lookup_service_line() {
-    local name="$1"
-    grep "^${name}|" "$INDEX_FILE" || true
-}
-
-create_launcher() {
-    local name="$1"
-    local url="$2"
-    local browser_id="$3"
-
-    local desktop_file="${LAUNCHERS_DIR}/${name}.desktop"
-
-    if [ -e "$desktop_file" ]; then
-        echo "INSTALL: Entry $name already exists. Skipping."
-        return
-    fi
-
-    echo "INSTALL: Adding entry $name -> $url."
-    cat <<EOF > "$desktop_file"
+# Generate desktop entry file
+create_desktop_entry() {
+    local app_name="$1"
+    local browser_id="$2"
+    local target_url="$3"
+    local desktop_file="${USER_APPS}/${app_name}.desktop"
+    
+    [[ -f "${desktop_file}" ]] && {
+        echo "Skipping existing entry: ${app_name}"
+        return 1
+    }
+    
+    cat > "${desktop_file}" << DESKTOP_EOF
 [Desktop Entry]
 Icon=
-Name=${name}
+Name=${app_name}
 Type=Application
-Exec=${HELPER_SCRIPT} ${browser_id} "${url}"
-EOF
+Exec=${LAUNCHER_SCRIPT} ${browser_id} "${target_url}"
+DESKTOP_EOF
+    
+    chmod +x "${desktop_file}"
+    echo "Created launcher: ${app_name}"
+    return 0
+}
 
-    chmod 0755 "$desktop_file"
-
-    echo "INSTALL: Checking for ${browser_id} Flatpak dependency..."
-    if ! flatpak info "${browser_id}" >/dev/null 2>&1; then
-        echo "INSTALL: Installing ${browser_id} Flatpak..."
-        sudo flatpak --assumeyes install "${browser_id}"
-        flatpak --user override --filesystem=/run/udev:ro "${browser_id}"
-    fi
-
-    echo "INSTALL: Adding ${name} to Steam."
-    steamos-add-to-steam "$desktop_file"
+# Register with Steam
+add_to_steam() {
+    local desktop_file="$1"
+    
+    echo "Registering with Steam: $(basename "${desktop_file}")"
+    steamos-add-to-steam "${desktop_file}"
     sleep 1
 }
 
-###############################################################################
-# Main flow
-###############################################################################
+# Main installation loop
+install_services() {
+    local browser_override="$1"
+    local selected_services="$2"
+    local -a services_array
+    local service entry app_name target_url browser_id
+    
+    IFS='|' read -ra services_array <<< "${selected_services}"
+    
+    for service in "${services_array[@]}"; do
+        entry=$(parse_service_entry "${service}")
+        [[ -z "${entry}" ]] && continue
+        
+        IFS='|' read -r app_name target_url browser_id <<< "${entry}"
+        
+        # Apply browser override if specified
+        [[ -n "${browser_override}" ]] && browser_id="${browser_override}"
+        
+        ensure_flatpak "${browser_id}"
+        
+        if create_desktop_entry "${app_name}" "${browser_id}" "${target_url}"; then
+            add_to_steam "${USER_APPS}/${app_name}.desktop"
+        fi
+    done
+}
 
-# Ensure necessary directories
-ensure_directory "$LAUNCHERS_DIR"
-ensure_directory "$HELPER_DIR"
-
-# Refresh index file
-if [ -e "$INDEX_FILE" ]; then
-    rm -f "$INDEX_FILE"
-    echo "SETUP: Removed existing source file $INDEX_FILE."
-fi
-
-fetch_file "$INDEX_URL" "$INDEX_FILE"
-fetch_file "$HELPER_URL" "$HELPER_SCRIPT"
-chmod 0755 "$HELPER_SCRIPT"
-
-# Let the user choose a browser override
-BROWSER_OVERRIDE="$(pick_browser)"
-
-# Let the user choose which services to install
-RAW_SELECTIONS="$(prompt_for_services)"
-
-declare -a SELECTED_SERVICES=()
-parse_selection_list "$RAW_SELECTIONS" SELECTED_SERVICES
-echo "URLS: Selected sites: ${SELECTED_SERVICES[*]}"
-
-# Process each selected service
-for service_name in "${SELECTED_SERVICES[@]}"; do
-    service_line="$(lookup_service_line "$service_name")"
-    [ -z "$service_line" ] && {
-        echo "WARN: Could not find entry for $service_name in index."
-        continue
+# Entry point
+main() {
+    setup_directories
+    fetch_resources
+    
+    local browser_preference selected
+    browser_preference=$(select_browser)
+    echo "Browser mode: ${browser_preference:-default}"
+    
+    selected=$(choose_services)
+    [[ -z "${selected}" ]] && {
+        echo "No services selected"
+        exit 0
     }
+    
+    echo "Installing selected services..."
+    install_services "${browser_preference}" "${selected}"
+    
+    echo "Installation complete!"
+}
 
-    entry_name="${service_line%%|*}"
-    remainder="${service_line#*|}"
-    entry_url="${remainder%%|*}"
-    entry_browser="${remainder##*|}"
-
-    # Apply user-selected override if present
-    if [ -n "$BROWSER_OVERRIDE" ]; then
-        entry_browser="$BROWSER_OVERRIDE"
-    fi
-
-    create_launcher "$entry_name" "$entry_url" "$entry_browser"
-done
+main "$@"

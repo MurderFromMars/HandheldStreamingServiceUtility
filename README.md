@@ -1,126 +1,134 @@
-## Handheld Streaming Service Utility 
-This script will provide a UI to select any URLs found in the `data/links.index` source file,  and add them to Steam.  It is compatible with any dsitro, provided you can fufill the add to steam dependency. for greatest ease of use a handheld distro such as Bazzite or SteamOS,  CachyOS and Nobara should also work but require installing the flatpak package.  
-is best suited for Gamescope-Session but can be used with big picture mode as well. it essentially automatically creates web apps for streaming services that are added as non steam games in your library 
+# Handheld Streaming Service Utility
 
-## Dependencies 
-Flatpak, steamos-add-to-steam (present on all handheld oriiented distros, also on the AUR, might have to get creative on other distros)
+The Handheld Streaming Service Utility provides a simple interface for turning streaming platforms into Steam‑launchable web apps. It reads from the `data/links.index` file, presents the available services, and automatically registers your selections as non‑Steam shortcuts inside Steam.
 
-<table>
-  <tr>
-  </tr>
-</table>
+Any Linux distribution that supports the “add to Steam” mechanism can run the tool. Handheld‑focused systems such as SteamOS, Bazzite, CachyOS, and Nobara tend to offer the smoothest experience (some may require installing the Flatpak package first). Although the workflow is optimized for Gamescope‑Session, it works just as well in Big Picture Mode.
+
+## Requirements
+
+Before running the utility, make sure the following components are available:
+
+- Flatpak
+- steamos-add-to-steam  
+  (included by default on most handheld‑oriented distros; available in the AUR; may require manual installation on others)
 
 ## Browser Selection
 
-When running the script, you will be prompted to select the browser you would like to use for all URLs. You can choose between:
+When the script launches, you’ll be asked which browser should handle all streaming shortcuts. You can choose:
 
-1. **Google Chrome** (Best Compatibility)
-2. **Brave Browser**: (Best Privacy)
+1. Google Chrome — broad compatibility  
+2. Brave Browser — privacy‑focused option  
 
-## Supported URLs
-The list below is based on the index found in the source tree and may not contain the full list.  Review [data/links.index](/data/links.index) for the most up-to-date data.
+Your selection applies to all services added during that session.
 
-* [ABC IView](https://iview.abc.net.au)
-* [AirGPU](https://app.airgpu.com)
-* [Amazon Luna](https://luna.amazon.com/)
-* [Amazon Prime Video](https://www.amazon.com/video)
-* [Angry Birds TV](https://www.angrybirds.com/series/)
-* [Antstream](https://live.antstream.com/)
-* [Apple TV](https://tv.apple.com/)
-* [BBC iPlayer](https://www.bbc.co.uk/iplayer/)
-* [BritBox](https://britbox.com)
-* [Binge](https://binge.com.au)
-* [Blacknut](https://www.blacknut.com/en-gb/games)
-* [Boosteroid](https://cloud.boosteroid.com)
-* [CBBC](https://www.bbc.co.uk/cbbc)
-* [CBeebies](https://www.bbc.co.uk/cbeebies)
-* [Channel 4](https://www.channel4.com/)
-* [Crave](https://www.crave.ca/)
-* [Criterion Channel](https://www.criterionchannel.com)
-* [Crunchyroll](https://www.crunchyroll.com/)
-* [Curiosity Stream](https://curiositystream.com)
-* [Daily Wire](https://www.dailywire.com/watch)
-* [Discord](https://discord.com/app)
-* [Disney+](https://www.disneyplus.com/)
-* [DocPlay](https://www.docplay.com)
-* [Dropout](https://www.dropout.tv/browse)
-* [Emby Theater](https://emby.media/)
-* [Fox](https://www.fox.com/)
-* [Fubo TV](https://www.fubo.tv)
-* [GeForce Now](https://play.geforcenow.com/mall/)
-* [GBNews Live](https://www.gbnews.com/watch/live)
-* [GlobalComix](https://globalcomix.com/)
-* [Google Play Books](https://play.google.com/store/books)
-* [HBO Max](https://www.max.com/)
-* [Home Assistant](https://demo.home-assistant.io/)
-* [Hulu](https://www.hulu.com/)
-* [Internet Archive Movies](https://archive.org/details/movies)
-* [ITV X](https://www.itv.com/)
-* [Kanopy](https://www.kanopy.com)
-* [Microsoft Movies and TV](https://apps.microsoft.com/movies)
-* [My5](https://www.channel5.com/)
-* [Nebula](https://nebula.tv/)
-* [Netflix](https://www.netflix.com/)
-* [Newgrounds Movies](https://www.newgrounds.com/movies)
-* [Newgrounds Games](https://www.newgrounds.com/games)
-* [Kogama](https://www.kogama.com/)
-* [Paramount+](https://www.paramountplus.com/)
-* [Peacock TV](https://www.peacocktv.com/)
-* [POP Player](https://player.pop.co.uk/)
-* [Puffer](https://puffer.stanford.edu/player/)
-* [Plex](https://app.plex.tv/)
-* [Pocket Casts](https://play.pocketcasts.com)
-* [Poki](https://poki.com/)
-* [Reddit](https://www.reddit.com/r/all/)
-* [SBS Ondemand](https://www.sbs.com.au/ondemand/)
-* [Scratch](https://scratch.mit.edu/explore/projects/all)
-* [Sling TV](https://www.sling.com)
-* [Spotify](https://open.spotify.com/)
-* [Stan](https://www.stan.com.au)
-* [Steam Broadcasts](https://steamcommunity.com/?subsection=broadcasts)
-* [Squid TV](https://www.squidtv.net/)
-* [TikTok](https://www.tiktok.com/)
-* [Threads](https://www.threads.net/)
-* [Twitch](https://www.twitch.tv/)
-* [Twitter](https://twitter.com/)
-* [Vimeo](https://vimeo.com/)
-* [Virgin TV Go](https://virgintvgo.virginmedia.com/en/home)
-* [VK Play](https://cloud.vkplay.ru/)
-* [Xbox Game Pass Streaming](https://www.xbox.com/play)
-* [Xiaohongshu (RedNote)](https://www.xiaohongshu.com/explore)
-* [YouTube Music](https://music.youtube.com/)
-* [YouTube TV](https://tv.youtube.com/)
-* [YouTube](https://www.youtube.com/)
-* [WebRcade](https://play.webrcade.com/)
+## Supported Services
 
-## Installation Command
+The list below reflects the entries currently referenced in the project’s index file.  
+For the most accurate and complete list, check `data/links.index` in the repository.
 
-```
+- ABC IView  
+- AirGPU  
+- Amazon Luna  
+- Amazon Prime Video  
+- Angry Birds TV  
+- Antstream  
+- Apple TV  
+- BBC iPlayer  
+- BritBox  
+- Binge  
+- Blacknut  
+- Boosteroid  
+- CBBC  
+- CBeebies  
+- Channel 4  
+- Crave  
+- Criterion Channel  
+- Crunchyroll  
+- Curiosity Stream  
+- Daily Wire  
+- Discord  
+- Disney+  
+- DocPlay  
+- Dropout  
+- Emby Theater  
+- Fox  
+- Fubo TV  
+- GeForce Now  
+- GBNews Live  
+- GlobalComix  
+- Google Play Books  
+- HBO Max  
+- Home Assistant  
+- Hulu  
+- Internet Archive Movies  
+- ITV X  
+- Kanopy  
+- Microsoft Movies & TV  
+- My5  
+- Nebula  
+- Netflix  
+- Newgrounds Movies  
+- Newgrounds Games  
+- Kogama  
+- Paramount+  
+- Peacock TV  
+- POP Player  
+- Puffer  
+- Plex  
+- Pocket Casts  
+- Poki  
+- Reddit  
+- SBS OnDemand  
+- Scratch  
+- Sling TV  
+- Spotify  
+- Stan  
+- Steam Broadcasts  
+- Squid TV  
+- TikTok  
+- Threads  
+- Twitch  
+- Twitter  
+- Vimeo  
+- Virgin TV Go  
+- VK Play  
+- Xbox Game Pass Streaming  
+- Xiaohongshu (RedNote)  
+- YouTube Music  
+- YouTube TV  
+- YouTube  
+- WebRcade  
+
+## Installation
+
+Run the following command in your terminal:
+
 curl -L https://github.com/MurderFromMars/HandheldStreamingServiceUtility/raw/main/install.sh | bash
-```
 
-Return to Gamescope, and use the [SteamGridDB](https://github.com/SteamGridDB/decky-steamgriddb) Decky plugin to add images to the new streaming services launchers.
+After installation, return to Gamescope and use the SteamGridDB Decky plugin to assign artwork to your newly created shortcuts.
 
-### Enabling Native Touch Support
-After opening a shortcut, enable native touch support to improve the user experience.
+## Enabling Touchscreen Support
 
-* Open controller settings for the platform.
-* Select `Edit Layout`.
-* Select `Action Sets`.
-* Select the `Default Settings` gear.
-* Select `Add Always-On command`.
-* Select `Add command`.
-* Select `System`.
-* Select `Touchscreen Native Support`.
+To improve usability on handheld devices, enable native touch input for each shortcut:
 
-Return to your application screen, and use touch input.
+1. Open the controller configuration for the shortcut.  
+2. Select Edit Layout.  
+3. Open Action Sets.  
+4. Choose the Default Settings gear icon.  
+5. Add an Always‑On Command.  
+6. Select System.  
+7. Enable Touchscreen Native Support.
 
-### Uninstalling
-1. Delete the launchers from Steam.
-2. Remove the related .desktop files from ~/Applications.
-3. Delete steamfork-browser-open from ~/bin.
+Once applied, return to the app and touch input will be active.
 
-## Credit For Original.Concept and Code.
+## Uninstalling
 
-This project was originally called SetupStreamingServices and was created by the lead dev of SteamFork. a SteamOS clone distro that is now defunct and no longer being maintained.
-as the code was archived I was unable to actually fork the project, so instead copied the source code and made some alterations. I plan to continue maintaining this as I personally use it on my handheld devices. 
+To remove the utility:
+
+1. Delete the generated shortcuts from Steam.  
+2. Remove the corresponding `.desktop` files from `~/Applications`.  
+3. Delete the `steamfork-browser-open` script from `~/bin`.
+
+## Acknowledgements
+
+This project was inspired by the SetupStreamingServices utility originally created by the talented developers behind the SteamFork distribution. Although SteamFork is no longer maintained, their approach to integrating streaming services into a handheld‑friendly environment so i decided to implement my own version of it here.  and  I will continue to be maintained for users who want a streamlined way to access their streaming platforms on handheld devices.

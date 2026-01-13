@@ -1,4 +1,4 @@
-h# Handheld Streaming Service Utility
+# Handheld Streaming Service Utility
 
 The Handheld Streaming Service Utility provides a simple interface for turning streaming platforms into Steam launchable web apps. It reads from the `data/links.index` file, presents the available services, and automatically registers your selections as non Steam shortcuts inside Steam.
 

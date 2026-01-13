@@ -103,7 +103,7 @@ For the most accurate and complete list, check `data/links.index` in the reposit
 
 Run the following command in your terminal:
 
-curl -L https://github.com/MurderFromMars/HandheldStreamingServiceUtility/raw/main/install.sh | bash
+'''curl -L https://github.com/MurderFromMars/HandheldStreamingServiceUtility/raw/main/install.sh | bash```
 
 After installation, return to Gamescope and use the SteamGridDB Decky plugin to assign artwork to your newly created shortcuts.
 

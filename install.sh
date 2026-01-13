@@ -1,30 +1,66 @@
 #!/bin/bash
-# SPDX-License-Identifier: GPL-2.0-or-later
-# Handheld Streaming Service Utility Installer
+# Handheld Streaming Service Utility - Chrome WebApp Installer
+# Creates Flatpak Google Chrome fullscreen kiosk web apps from links.index
 
 set -e
 
-WORK_DIR="$(dirname "$(realpath "$0")")"
-DATA_DIR="${WORK_DIR}/data"
-BIN_DIR="${WORK_DIR}/bin"
-OUTPUT_DIR="${WORK_DIR}/output"
+###############################################
+# Config
+###############################################
 
+WORK_DIR="$(dirname "$(realpath "$0")")"
+OUTPUT_DIR="${WORK_DIR}/output"
 APPS_PATH="${HOME}/Applications"
-SCRIPT_PATH="${HOME}/bin"
-SCRIPT_COMMAND="${SCRIPT_PATH}/handheld-browser-open"
 SOURCE_FILE="${WORK_DIR}/links.index"
 
-mkdir -p "${DATA_DIR}" "${BIN_DIR}" "${OUTPUT_DIR}"
+# Remote applist (your repo)
+REMOTE_APPLIST_URL="https://raw.githubusercontent.com/MurderFromMars/HandheldStreamingServiceUtility/main/data/links.index"
+
+mkdir -p "${OUTPUT_DIR}" "${APPS_PATH}"
 
 ###############################################
-# Convert links.index to Markdown
+# Helper: ensure links.index exists
+###############################################
+ensure_applist() {
+    if [ -f "${SOURCE_FILE}" ]; then
+        echo "Using existing applist: ${SOURCE_FILE}"
+        return 0
+    fi
+
+    echo "Fetching applist from ${REMOTE_APPLIST_URL}..."
+    curl -fLo "${SOURCE_FILE}" "${REMOTE_APPLIST_URL}" || {
+        echo "ERROR: Failed to download links.index"
+        exit 1
+    }
+}
+
+###############################################
+# Helper: ensure Flatpak Chrome is installed
+###############################################
+ensure_chrome_flatpak() {
+    if flatpak info com.google.Chrome >/dev/null 2>&1; then
+        echo "Flatpak Google Chrome is already installed."
+        return 0
+    fi
+
+    echo "Installing Flatpak Google Chrome..."
+    if ! command -v sudo >/dev/null 2>&1; then
+        echo "ERROR: sudo not found. Cannot install Flatpak Chrome automatically."
+        exit 1
+    fi
+
+    sudo flatpak --assumeyes install com.google.Chrome
+    # Optional: give browser access to controllers/udev if needed
+    flatpak --user override --filesystem=/run/udev:ro com.google.Chrome || true
+}
+
+###############################################
+# Helper: generate Markdown list of services
 ###############################################
 generate_markdown_links() {
-    echo "STEP: Generating Markdown link list..."
-
     if [ ! -f "${SOURCE_FILE}" ]; then
-        echo "ERROR: links.index not found at ${SOURCE_FILE}"
-        return 1
+        echo "No links.index found for Markdown generation."
+        return 0
     fi
 
     sed -e 's/^/* [/' \
@@ -33,173 +69,91 @@ generate_markdown_links() {
         -e 's/$/)/' \
         "${SOURCE_FILE}" > "${OUTPUT_DIR}/links.md"
 
-    echo "OUTPUT: Markdown links saved to ${OUTPUT_DIR}/links.md"
+    echo "Markdown link list written to ${OUTPUT_DIR}/links.md"
 }
 
 ###############################################
-# Optional browser launcher function (not used
-# by .desktop directly, but kept for reuse)
+# Main installer
 ###############################################
-browser_open() {
-    local BROWSER="$1"
-    local URL="$2"
+run_installer() {
+    ensure_applist
+    ensure_chrome_flatpak
 
-    if [ -z "${BROWSER}" ]; then
-        BROWSER="com.google.Chrome"
-    fi
+    # Build Zenity checklist from applist
+    declare -a allEntries=()
+    while read -r LINE; do
+        # Skip empty or comment lines
+        [ -z "${LINE}" ] && continue
+        [[ "${LINE}" =~ ^# ]] && continue
 
-    flatpak info "${BROWSER}" >/dev/null 2>&1
-    if (( $? > 0 )); then
-        case ${BROWSER} in
-            com.google.Chrome) BROWSER="Google Chrome" ;;
-            com.microsoft.Edge) BROWSER="Microsoft Edge" ;;
-        esac
-        zenity --info --text="Please switch to desktop mode and install ${BROWSER} from the Discover Software Center."
+        NAME="${LINE%%|*}"
+        allEntries+=("FALSE" "${NAME}")
+    done < "${SOURCE_FILE}"
+
+    if [ ${#allEntries[@]} -eq 0 ]; then
+        echo "No entries found in links.index."
         exit 1
     fi
 
-    unset LD_PRELOAD
-
-    /usr/bin/flatpak run \
-        --arch=x86_64 \
-        --branch=stable \
-        --file-forwarding \
-        "${BROWSER}" \
-        @@u \
-        @@ \
-        --window-size="1024,640" \
-        --force-device-scale-factor="1.25" \
-        --device-scale-factor="1.25" \
-        --kiosk \
-        "${URL}"
-}
-
-###############################################
-# Main Installer
-###############################################
-run_installer() {
-    echo "STEP: Preparing user directories..."
-
-    for DIR in "${APPS_PATH}" "${SCRIPT_PATH}"; do
-        if [ ! -d "${DIR}" ]; then
-            mkdir -p "${DIR}"
-            echo "SETUP: Created directory ${DIR}."
-        fi
-    done
-
-    if [ -e "${SOURCE_FILE}" ]; then
-        rm "${SOURCE_FILE}"
-        echo "SETUP: Removed existing source file ${SOURCE_FILE}."
-    fi
-
-    echo "STEP: Fetching source data (links.index)..."
-    curl -Lo "${SOURCE_FILE}" \
-        "https://raw.githubusercontent.com/MurderFromMars/HandheldStreamingServiceUtility/main/data/links.index"
-
-    echo "STEP: Fetching browser launcher script..."
-    curl -Lo "${SCRIPT_COMMAND}" \
-        "https://raw.githubusercontent.com/MurderFromMars/HandheldStreamingServiceUtility/main/bin/handheld-browser-open"
-    chmod 0755 "${SCRIPT_COMMAND}"
-
-    BROWSER_CHOICE=$(zenity --list \
-        --title="Browser Selection" \
-        --text="Select the browser you want to use for all URLs:" \
-        --radiolist \
-        --column="Select" --column="Browser" \
-        TRUE "Google Chrome and Microsoft Edge (Best Compatibility)" \
-        FALSE "Brave Browser (Best Privacy)")
-
-    if [ $? -ne 0 ]; then
-        echo "USER: Operation cancelled."
-        exit 0
-    fi
-
-    if [ "${BROWSER_CHOICE}" = "Brave Browser" ]; then
-        OVERRIDE_BROWSER="com.brave.Browser"
-        echo "USER: Brave Browser selected."
-    else
-        OVERRIDE_BROWSER=""
-        echo "USER: Default browsers selected (Chrome/Edge per entry)."
-    fi
-
-    declare -a allURLs=()
-    while read -r SITES; do
-        SITE="${SITES%%|*}"
-        allURLs+=("FALSE" "${SITE}")
-    done < "${SOURCE_FILE}"
-
-    URLS=$(zenity --title "Streaming Services" \
+    # Let user pick services
+    SELECTED=$(zenity --title "Streaming Services" \
         --list \
         --height=600 \
-        --width=350 \
-        --text="Choose the services you want to add." \
+        --width=400 \
+        --text="Choose the services you want to add as fullscreen Chrome web apps." \
         --column="Select" \
         --column="Service" \
         --checklist \
-        "${allURLs[@]}")
+        "${allEntries[@]}")
 
-    if [ $? -ne 0 ]; then
-        echo "USER: Operation cancelled."
+    if [ $? -ne 0 ] || [ -z "${SELECTED}" ]; then
+        echo "No services selected or operation cancelled."
         exit 0
     fi
 
-    IFS='|' read -r -a arrSelected <<< "${URLS}"
+    IFS='|' read -r -a arrSelected <<< "${SELECTED}"
 
-    echo "STEP: Installing selected entries..."
-
+    echo "Creating web app entries..."
     for ITEM in "${arrSelected[@]}"; do
-        NEW_ITEM=$(grep "^${ITEM}|" "${SOURCE_FILE}") || continue
-        NAME="${NEW_ITEM%%|*}"
-        NEW_ITEM="${NEW_ITEM#*|}"
-        BROWSER="${NEW_ITEM##*|}"
-        URL="${NEW_ITEM%%|*}"
-
-        if [ -n "${OVERRIDE_BROWSER}" ]; then
-            BROWSER="${OVERRIDE_BROWSER}"
+        MATCH_LINE=$(grep "^${ITEM}|" "${SOURCE_FILE}" || true)
+        if [ -z "${MATCH_LINE}" ]; then
+            echo "WARNING: Could not find entry for '${ITEM}' in links.index, skipping."
+            continue
         fi
+
+        NAME="${MATCH_LINE%%|*}"
+        REST="${MATCH_LINE#*|}"
+        URL="${REST%%|*}"
+        # Third field (browser ID) is ignored; we force Chrome
 
         DESKTOP_FILE="${APPS_PATH}/${NAME}.desktop"
 
-        if [ ! -e "${DESKTOP_FILE}" ]; then
-            echo "INSTALL: Adding entry ${NAME} -> ${URL}"
+        if [ -e "${DESKTOP_FILE}" ]; then
+            echo "Skipping existing entry: ${NAME}"
+            continue
+        fi
 
-            cat <<EOF > "${DESKTOP_FILE}"
+        echo "Creating: ${DESKTOP_FILE}"
+        cat <<EOF > "${DESKTOP_FILE}"
 [Desktop Entry]
 Name=${NAME}
 Type=Application
-Exec=/usr/bin/env -u LD_PRELOAD "${SCRIPT_COMMAND}" "${BROWSER}" "${URL}"
 Icon=
+Exec=/usr/bin/flatpak run --branch=stable --arch=x86_64 com.google.Chrome --kiosk --start-fullscreen --force-device-scale-factor=1.25 "${URL}"
 EOF
 
-            chmod 0755 "${DESKTOP_FILE}"
+        chmod 0755 "${DESKTOP_FILE}"
 
-            echo "INSTALL: Checking for ${BROWSER} Flatpak..."
-            if ! flatpak info "${BROWSER}" >/dev/null 2>&1; then
-                echo "INSTALL: Installing ${BROWSER}..."
-                sudo flatpak --assumeyes install "${BROWSER}"
-                flatpak --user override --filesystem=/run/udev:ro "${BROWSER}"
-            fi
-
-            echo "INSTALL: Adding ${NAME} to Steam (if available)..."
-            if command -v steamos-add-to-steam >/dev/null 2>&1; then
-                steamos-add-to-steam "${DESKTOP_FILE}"
-            else
-                echo "NOTICE: steamos-add-to-steam not found; desktop entry created but not added to Steam automatically."
-            fi
-
-            sleep 1
-        else
-            echo "INSTALL: Entry ${NAME} already exists. Skipping."
+        # Add to Steam if available (SteamOS)
+        if command -v steamos-add-to-steam >/dev/null 2>&1; then
+            echo "Adding ${NAME} to Steam..."
+            steamos-add-to-steam "${DESKTOP_FILE}" || true
         fi
     done
 
-    echo "STEP: Generating Markdown link list..."
     generate_markdown_links
 
-    echo "INSTALLATION COMPLETE."
+    echo "Done. Your web apps should now appear in your launcher (and Steam if available)."
 }
 
-###############################################
-# MAIN EXECUTION
-###############################################
 run_installer

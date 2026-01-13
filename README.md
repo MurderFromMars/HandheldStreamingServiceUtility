@@ -131,4 +131,4 @@ To remove the utility:
 
 ## Acknowledgements
 
-This project was inspired by the SetupStreamingServices utility originally created by the talented developers behind the SteamFork distribution. Although SteamFork is no longer maintained, their approach to integrating streaming services into a handheld‑friendly environment so i decided to implement my own version of it here.  and  I will continue to be maintained for users who want a streamlined way to access their streaming platforms on handheld devices.
+This project was inspired by the SetupStreamingServices utility originally created by the talented developers behind the SteamFork distribution. Although SteamFork is no longer maintained, their approach to integrating streaming services into a handheld‑friendly environment inspired me to continue a spiritual successor of their utility  so i decided to implement my own version of it here.  and  I will continue to be maintained for users who want a streamlined way to access their streaming platforms on handheld devices.

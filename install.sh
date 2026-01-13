@@ -1,6 +1,4 @@
 #!/bin/bash
-# SPDX-License-Identifier: GPL-2.0-or-later
-
 # Handheld Streaming Service Utility - installer
 
 set -e

@@ -37,7 +37,8 @@ generate_markdown_links() {
 }
 
 ###############################################
-# Browser launcher (embedded)
+# Optional browser launcher function (not used
+# by .desktop directly, but kept for reuse)
 ###############################################
 browser_open() {
     local BROWSER="$1"
@@ -77,7 +78,7 @@ browser_open() {
 # Main Installer
 ###############################################
 run_installer() {
-    echo "STEP: Preparing directories..."
+    echo "STEP: Preparing user directories..."
 
     for DIR in "${APPS_PATH}" "${SCRIPT_PATH}"; do
         if [ ! -d "${DIR}" ]; then
@@ -91,11 +92,11 @@ run_installer() {
         echo "SETUP: Removed existing source file ${SOURCE_FILE}."
     fi
 
-    echo "STEP: Fetching source data..."
+    echo "STEP: Fetching source data (links.index)..."
     curl -Lo "${SOURCE_FILE}" \
         "https://raw.githubusercontent.com/MurderFromMars/HandheldStreamingServiceUtility/main/data/links.index"
 
-    echo "STEP: Fetching browser launcher..."
+    echo "STEP: Fetching browser launcher script..."
     curl -Lo "${SCRIPT_COMMAND}" \
         "https://raw.githubusercontent.com/MurderFromMars/HandheldStreamingServiceUtility/main/bin/handheld-browser-open"
     chmod 0755 "${SCRIPT_COMMAND}"
@@ -118,7 +119,7 @@ run_installer() {
         echo "USER: Brave Browser selected."
     else
         OVERRIDE_BROWSER=""
-        echo "USER: Default browsers selected."
+        echo "USER: Default browsers selected (Chrome/Edge per entry)."
     fi
 
     declare -a allURLs=()
@@ -131,9 +132,9 @@ run_installer() {
         --list \
         --height=600 \
         --width=350 \
-        --text="Choose the services you want to add to Game Mode." \
+        --text="Choose the services you want to add." \
         --column="Select" \
-        --column="URL" \
+        --column="Service" \
         --checklist \
         "${allURLs[@]}")
 
@@ -147,7 +148,7 @@ run_installer() {
     echo "STEP: Installing selected entries..."
 
     for ITEM in "${arrSelected[@]}"; do
-        NEW_ITEM=$(grep "^${ITEM}|" "${SOURCE_FILE}")
+        NEW_ITEM=$(grep "^${ITEM}|" "${SOURCE_FILE}") || continue
         NAME="${NEW_ITEM%%|*}"
         NEW_ITEM="${NEW_ITEM#*|}"
         BROWSER="${NEW_ITEM##*|}"
@@ -164,23 +165,28 @@ run_installer() {
 
             cat <<EOF > "${DESKTOP_FILE}"
 [Desktop Entry]
-Icon=
 Name=${NAME}
 Type=Application
-Exec=${SCRIPT_COMMAND} ${BROWSER} "${URL}"
+Exec=/usr/bin/env -u LD_PRELOAD "${SCRIPT_COMMAND}" "${BROWSER}" "${URL}"
+Icon=
 EOF
 
             chmod 0755 "${DESKTOP_FILE}"
 
             echo "INSTALL: Checking for ${BROWSER} Flatpak..."
-            flatpak info "${BROWSER}" >/dev/null 2>&1 || {
+            if ! flatpak info "${BROWSER}" >/dev/null 2>&1; then
                 echo "INSTALL: Installing ${BROWSER}..."
                 sudo flatpak --assumeyes install "${BROWSER}"
                 flatpak --user override --filesystem=/run/udev:ro "${BROWSER}"
-            }
+            fi
 
-            echo "INSTALL: Adding ${NAME} to Steam..."
-            steamos-add-to-steam "${DESKTOP_FILE}"
+            echo "INSTALL: Adding ${NAME} to Steam (if available)..."
+            if command -v steamos-add-to-steam >/dev/null 2>&1; then
+                steamos-add-to-steam "${DESKTOP_FILE}"
+            else
+                echo "NOTICE: steamos-add-to-steam not found; desktop entry created but not added to Steam automatically."
+            fi
+
             sleep 1
         else
             echo "INSTALL: Entry ${NAME} already exists. Skipping."

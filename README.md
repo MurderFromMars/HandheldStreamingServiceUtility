@@ -1,4 +1,4 @@
-# Handheld Streaming Service Utility
+h# Handheld Streaming Service Utility
 
 The Handheld Streaming Service Utility provides a simple interface for turning streaming platforms into Steam launchable web apps. It reads from the `data/links.index` file, presents the available services, and automatically registers your selections as non Steam shortcuts inside Steam.
 
@@ -11,15 +11,6 @@ Before running the utility, make sure the following components are available:
 - Flatpak
 - steamos add to steam  
   (included by default on most handheld oriented distros; available in the AUR; may require manual installation on others)
-
-## Browser Selection
-
-When the script launches, you will be asked which browser should handle all streaming shortcuts. You can choose:
-
-1. Google Chrome — broad compatibility  
-2. Brave Browser — privacy focused option  
-
-Your selection applies to all services added during that session.
 
 ## Supported Services
 

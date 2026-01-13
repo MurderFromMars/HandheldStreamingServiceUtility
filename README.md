@@ -1,23 +1,23 @@
 # Handheld Streaming Service Utility
 
-The Handheld Streaming Service Utility provides a simple interface for turning streaming platforms into Steam‑launchable web apps. It reads from the `data/links.index` file, presents the available services, and automatically registers your selections as non‑Steam shortcuts inside Steam.
+The Handheld Streaming Service Utility provides a simple interface for turning streaming platforms into Steam launchable web apps. It reads from the `data/links.index` file, presents the available services, and automatically registers your selections as non Steam shortcuts inside Steam.
 
-Any Linux distribution that supports the “add to Steam” mechanism can run the tool. Handheld‑focused systems such as SteamOS, Bazzite, CachyOS, and Nobara tend to offer the smoothest experience (some may require installing the Flatpak package first). Although the workflow is optimized for Gamescope‑Session, it works just as well in Big Picture Mode.
+Any Linux distribution that supports the “add to Steam” mechanism can run the tool. Handheld focused systems such as SteamOS, Bazzite, CachyOS, and Nobara tend to offer the smoothest experience (some may require installing the Flatpak package first). Although the workflow is optimized for Gamescope Session, it works just as well in Big Picture Mode.
 
 ## Requirements
 
 Before running the utility, make sure the following components are available:
 
 - Flatpak
-- steamos-add-to-steam  
-  (included by default on most handheld‑oriented distros; available in the AUR; may require manual installation on others)
+- steamos add to steam  
+  (included by default on most handheld oriented distros; available in the AUR; may require manual installation on others)
 
 ## Browser Selection
 
-When the script launches, you’ll be asked which browser should handle all streaming shortcuts. You can choose:
+When the script launches, you will be asked which browser should handle all streaming shortcuts. You can choose:
 
 1. Google Chrome — broad compatibility  
-2. Brave Browser — privacy‑focused option  
+2. Brave Browser — privacy focused option  
 
 Your selection applies to all services added during that session.
 
@@ -47,7 +47,7 @@ For the most accurate and complete list, check `data/links.index` in the reposit
 - Curiosity Stream  
 - Daily Wire  
 - Discord  
-- Disney+  
+- Disney Plus  
 - DocPlay  
 - Dropout  
 - Emby Theater  
@@ -63,14 +63,14 @@ For the most accurate and complete list, check `data/links.index` in the reposit
 - Internet Archive Movies  
 - ITV X  
 - Kanopy  
-- Microsoft Movies & TV  
+- Microsoft Movies and TV  
 - My5  
 - Nebula  
 - Netflix  
 - Newgrounds Movies  
 - Newgrounds Games  
 - Kogama  
-- Paramount+  
+- Paramount Plus  
 - Peacock TV  
 - POP Player  
 - Puffer  
@@ -115,7 +115,7 @@ To improve usability on handheld devices, enable native touch input for each sho
 2. Select Edit Layout.  
 3. Open Action Sets.  
 4. Choose the Default Settings gear icon.  
-5. Add an Always‑On Command.  
+5. Add an Always On Command.  
 6. Select System.  
 7. Enable Touchscreen Native Support.
 
@@ -127,8 +127,8 @@ To remove the utility:
 
 1. Delete the generated shortcuts from Steam.  
 2. Remove the corresponding `.desktop` files from `~/Applications`.  
-3. Delete the `steamfork-browser-open` script from `~/bin`.
+3. Delete the `steamfork browser open` script from `~/bin`.
 
 ## Acknowledgements
 
-This project was inspired by the SetupStreamingServices utility originally created by the talented developers behind the SteamFork distribution. Although SteamFork is no longer maintained, their approach to integrating streaming services into a handheld‑friendly environment inspired me to continue a spiritual successor of their utility  so i decided to implement my own version of it here.  and  I will continue to be maintained for users who want a streamlined way to access their streaming platforms on handheld devices.
+This project was inspired by the SetupStreamingServices utility originally created by the talented developers behind the SteamFork distribution. Although SteamFork is no longer maintained, their approach to integrating streaming services into a handheld friendly environment inspired me to continue a spiritual successor of their utility, so I decided to implement my own version of it here. I will continue to maintain this for users who want a streamlined way to access their streaming platforms on handheld devices.

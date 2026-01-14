@@ -39,6 +39,9 @@ ensure_applist() {
 ensure_chrome_flatpak() {
     if flatpak info com.google.Chrome >/dev/null 2>&1; then
         echo "Flatpak Google Chrome is already installed."
+
+        # Ensure Chrome has access to ~/Applications
+        flatpak --user override --filesystem="${HOME}/Applications" com.google.Chrome || true
         return 0
     fi
 
@@ -49,8 +52,12 @@ ensure_chrome_flatpak() {
     fi
 
     sudo flatpak --assumeyes install com.google.Chrome
+
     # Optional: give browser access to controllers/udev if needed
     flatpak --user override --filesystem=/run/udev:ro com.google.Chrome || true
+
+    # NEW: give Chrome access to ~/Applications so kiosk apps work without Flatseal
+    flatpak --user override --filesystem="${HOME}/Applications" com.google.Chrome || true
 }
 
 ###############################################

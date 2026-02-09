@@ -9,7 +9,16 @@ set -e
 
 WORK_DIR="$(dirname "$(realpath "$0")")"
 OUTPUT_DIR="${WORK_DIR}/output"
-APPS_PATH="${HOME}/Applications"
+
+# Detect if we're on SteamOS or regular Linux
+if command -v steamos-add-to-steam >/dev/null 2>&1; then
+    APPS_PATH="${HOME}/Applications"
+    IS_STEAMOS=true
+else
+    APPS_PATH="${HOME}/.local/share/applications"
+    IS_STEAMOS=false
+fi
+
 SOURCE_FILE="${WORK_DIR}/links.index"
 
 # Remote applist (your repo)
@@ -40,8 +49,10 @@ ensure_chrome_flatpak() {
     if flatpak info com.google.Chrome >/dev/null 2>&1; then
         echo "Flatpak Google Chrome is already installed."
 
-        # Ensure Chrome has access to ~/Applications
-        flatpak --user override --filesystem="${HOME}/Applications" com.google.Chrome || true
+        # Ensure Chrome has access to ~/Applications (for SteamOS)
+        if [ "${IS_STEAMOS}" = true ]; then
+            flatpak --user override --filesystem="${HOME}/Applications" com.google.Chrome || true
+        fi
         return 0
     fi
 
@@ -56,8 +67,10 @@ ensure_chrome_flatpak() {
     # Optional: give browser access to controllers/udev if needed
     flatpak --user override --filesystem=/run/udev:ro com.google.Chrome || true
 
-    # NEW: give Chrome access to ~/Applications so kiosk apps work without Flatseal
-    flatpak --user override --filesystem="${HOME}/Applications" com.google.Chrome || true
+    # Give Chrome access to ~/Applications if on SteamOS
+    if [ "${IS_STEAMOS}" = true ]; then
+        flatpak --user override --filesystem="${HOME}/Applications" com.google.Chrome || true
+    fi
 }
 
 ###############################################
@@ -119,7 +132,12 @@ run_installer() {
 
     IFS='|' read -r -a arrSelected <<< "${SELECTED}"
 
-    echo "Creating web app entries..."
+    if [ "${IS_STEAMOS}" = true ]; then
+        echo "SteamOS detected - creating web apps for Steam..."
+    else
+        echo "Creating web app entries for application menu..."
+    fi
+
     for ITEM in "${arrSelected[@]}"; do
         MATCH_LINE=$(grep "^${ITEM}|" "${SOURCE_FILE}" || true)
         if [ -z "${MATCH_LINE}" ]; then
@@ -148,10 +166,10 @@ Icon=
 Exec=/usr/bin/flatpak run --branch=stable --arch=x86_64 com.google.Chrome --kiosk --start-fullscreen --force-device-scale-factor=1.25 "${URL}"
 EOF
 
-        chmod 0755 "${DESKTOP_FILE}"
+        chmod 0644 "${DESKTOP_FILE}"
 
-        # Add to Steam if available (SteamOS)
-        if command -v steamos-add-to-steam >/dev/null 2>&1; then
+        # Add to Steam if on SteamOS
+        if [ "${IS_STEAMOS}" = true ]; then
             echo "Adding ${NAME} to Steam..."
             steamos-add-to-steam "${DESKTOP_FILE}" || true
         fi
@@ -159,7 +177,12 @@ EOF
 
     generate_markdown_links
 
-    echo "Done. Your web apps should now appear in your launcher (and Steam if available)."
+    if [ "${IS_STEAMOS}" = true ]; then
+        echo "Done. Your web apps should now appear in Steam."
+    else
+        echo "Done. Your web apps should now appear in your application menu."
+        echo "If they don't appear immediately, you may need to log out and back in."
+    fi
 }
 
 run_installer

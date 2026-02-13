@@ -1,16 +1,45 @@
 # Handheld Streaming Service Utility
 
-The Handheld Streaming Service Utility provides a simple interface for turning streaming platforms into Steam launchable web apps. It reads from the `data/links.index` file, presents the available services, and automatically registers your selections as non Steam shortcuts inside Steam.
+The Handheld Streaming Service Utility converts streaming platforms into fullscreen Chrome web apps and registers them as launchable applications. On handheld friendly distros, these apps are automatically added to Steam; on other Linux systems, they appear in your application menu.
 
+The utility reads from `data/links.index`, presents a checklist of available services, and generates `.desktop` launchers for each selected entry.
 
+---
+
+## Features
+
+- **Automatic Chrome Flatpak installation**  
+  If Google Chrome (Flatpak) is not installed, the script installs it automatically (requires `sudo`).
+
+- **steamos-add-to-steam auto‑detection**  
+  - On distros including steamos-addt-steam: apps are created in `~/Applications` and automatically added to Steam.  
+  - On other Linux systems: apps are created in `~/.local/share/applications` and appear in your desktop environment’s launcher.
+
+- **Automatic permissions for Chrome**  
+  - Grants Chrome access to `~/Applications` on devices where apps are added to steam.  
+  - Grants Chrome access to `/run/udev` for controller support.
+
+- **Zenity-based service picker**  
+  A graphical checklist lets you choose which services to install.
+
+- **Markdown export**  
+  A formatted list of all services is generated at `output/links.md`.
+
+- **Failsafe applist handling**  
+  If `links.index` is missing locally, it is downloaded automatically from the repository.
+
+---
 
 ## Requirements
 
-Before running the utility, make sure the following components are available:
+The script handles most dependencies automatically, but you should have:
 
-- Flatpak
-- steamos add to steam  
-  (optional, included in most handheld oriented distros; available in the AUR; may require manual installation on others)
+- Flatpak  
+- Zenity  
+- `sudo` (only required if Chrome Flatpak must be installed)
+
+Optionally,, `steamos-add-to-steam` is detected automatically and used if available.
+
 
 ## Supported Services
 

@@ -43,6 +43,30 @@ ensure_applist() {
 }
 
 ###############################################
+# Helper: ensure Zenity is installed
+###############################################
+ensure_zenity() {
+    if command -v zenity >/dev/null 2>&1; then
+        echo "Zenity is already installed."
+        return 0
+    fi
+
+    echo "Installing Zenity..."
+    if command -v pacman >/dev/null 2>&1; then
+        sudo pacman -S --noconfirm zenity
+    elif command -v apt >/dev/null 2>&1; then
+        sudo apt install -y zenity
+    elif command -v dnf >/dev/null 2>&1; then
+        sudo dnf install -y zenity
+    elif flatpak info org.gnome.Zenity >/dev/null 2>&1 || flatpak install -y flathub org.gnome.Zenity; then
+        echo "Installed Zenity via Flatpak."
+    else
+        echo "ERROR: Could not install Zenity. Please install it manually."
+        exit 1
+    fi
+}
+
+###############################################
 # Helper: ensure Flatpak Chrome is installed
 ###############################################
 ensure_chrome_flatpak() {
@@ -96,6 +120,7 @@ generate_markdown_links() {
 ###############################################
 run_installer() {
     ensure_applist
+    ensure_zenity
     ensure_chrome_flatpak
 
     # Build Zenity checklist from applist
